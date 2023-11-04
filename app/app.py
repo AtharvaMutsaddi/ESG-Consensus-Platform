@@ -22,16 +22,19 @@ app = Flask(__name__)
 bcrypt = Bcrypt(app)
 moment = Moment(app)
 app.secret_key = '1234567890'
+
 def get_user_by_email(email):
     query = f"SELECT * FROM User WHERE Email = '{email}'"
     cursor.execute(query)
     result = cursor.fetchall()
     return result
+
 def get_org_id(name):
     query=f"SELECT OrganizationID FROM Organization where Name='{name}'"
     cursor.execute(query)
     result = cursor.fetchall()
     return result
+
 def create_new_user(form_data):
     email = form_data.get("email")
     password = form_data.get("password")
@@ -52,12 +55,31 @@ def create_new_user(form_data):
     values = (name, email, role, hashed_password, organization_id)
     cursor.execute(insert_query, values)
     cnx.commit()
+
+
+def create_new_post(form_data,user_id):
+    title=form_data.get("title")
+    description=form_data.get("description")
+    topic=form_data.get("topic")
+    type=form_data.get("type")
+    upvotes=0
+    downvotes=0
+    query=f"SELECT OrganizationID from User where UserID={user_id}"
+    cursor.execute(query)
+    result=cursor.fetchall()
+    OrganizationID=result[0][0]
+    values = (title, description, topic,user_id, upvotes, downvotes,OrganizationID,type)
+    insert_query = "INSERT INTO Post (Title, Description, Topic, UserID, Upvotes, Downvotes, OrganizationID, Type) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+    cursor.execute(insert_query, values)
+    cnx.commit()
+
 def get_posts():
     query = f"SELECT Post.*,Name FROM Post join User using(UserID);"
     cursor.execute(query)
     result = cursor.fetchall()
-    posts_df=pd.DataFrame(result,columns=["PostID","Title","Description","CreatedAtDate","Status","Topic","UserID","Upvotes","Downvotes","OrganizationID","PostedBy"])
+    posts_df=pd.DataFrame(result,columns=["PostID","Title","Description","CreatedAtDate","Status","Topic","UserID","Upvotes","Downvotes","OrganizationID","Type","PostedBy"])
     return posts_df
+
 def has_user_upvoted(user_id, post_id):
     # Check if the user has upvoted the post
     query = f"SELECT VoteType FROM UserVotes WHERE UserID = {user_id} AND PostID = {post_id}"
@@ -82,6 +104,7 @@ def has_user_upvoted(user_id, post_id):
             return True
     else:
         return False  # User has not upvoted the post, they can upvote it
+
 def insert_upvote(user_id, post_id):
     query = f"INSERT INTO UserVotes (UserID, PostID, VoteType) VALUES ({user_id}, {post_id}, 'upvote')"
     cursor.execute(query)
@@ -89,6 +112,7 @@ def insert_upvote(user_id, post_id):
     update_query = f"UPDATE Post SET Upvotes = Upvotes + 1 WHERE PostID = {post_id}"
     cursor.execute(update_query)
     cnx.commit()
+
 def has_user_downvoted(user_id, post_id):
     query = f"SELECT VoteType FROM UserVotes WHERE UserID = {user_id} AND PostID = {post_id}"
     cursor.execute(query)
@@ -110,6 +134,7 @@ def has_user_downvoted(user_id, post_id):
             return True
     else:
         return False 
+
 def insert_downvote(user_id, post_id):
     query = f"INSERT INTO UserVotes (UserID, PostID, VoteType) VALUES ({user_id}, {post_id}, 'downvote')"
     cursor.execute(query)
@@ -117,6 +142,13 @@ def insert_downvote(user_id, post_id):
     update_query = f"UPDATE Post SET Downvotes = Downvotes + 1 WHERE PostID = {post_id}"
     cursor.execute(update_query)
     cnx.commit()
+
+
+
+
+
+
+
 # Login route
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -195,6 +227,19 @@ def downvote(post_id):
 def home():
     posts_df=get_posts()
     return render_template("home.html",posts_df=posts_df)
+
+
+@app.route("/create_post", methods=["GET", "POST"])
+def create_post():
+    if request.method == "POST":
+        form_data = request.form.to_dict()
+        user_id = session["user_id"]
+        create_new_post(form_data,user_id)
+        return redirect(url_for("home"))
+
+    return render_template("create_post.html")
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

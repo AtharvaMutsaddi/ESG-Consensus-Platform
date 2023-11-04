@@ -12,7 +12,7 @@
             {% for index, post in posts_df.iterrows() %}
             <div class="card">
                 <div class="card-header">
-                    {{ post["Topic"] }}
+                    {{ post["Topic"] }}:{{post["Type"]}}
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">{{ post["Title"] }}</h5>
