@@ -1,4 +1,5 @@
 -- Create Organization Table
+USE project;
 CREATE TABLE Organization (
     OrganizationID INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
@@ -54,3 +55,16 @@ CREATE TABLE SentimentAnalysis (
     AnalysisDate TIMESTAMP,
     FOREIGN KEY (CommentID) REFERENCES Comment(CommentID)
 );
+
+-- Create UserVotes Table for tracking user votes on posts
+CREATE TABLE UserVotes (
+    VoteID INT AUTO_INCREMENT PRIMARY KEY,
+    UserID INT,
+    PostID INT,
+    VoteType ENUM('upvote', 'downvote') NOT NULL,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (UserID, PostID),
+    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (PostID) REFERENCES Post(PostID) ON DELETE CASCADE
+);
+
