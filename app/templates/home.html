@@ -1,9 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Home - Your App Name{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>This is Home</h1>
+    <h2>Home</h2>
+
+    {% if posts_df is not none %}
+    <div class="posts">
+        <ul>
+            {% for index, post in posts_df.iterrows() %}
+            <div class="card">
+                <div class="card-header">
+                    {{ post["Topic"] }}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ post["Title"] }}</h5>
+                    <span>Posted By: {{ post["PostedBy"] }}</span>
+                    <p class="card-text">{{ post["Description"] }}</p>
+                    <span>Status: {{ post["Status"] }}</span>
+                    <br>
+                    <span>
+                        <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
+                            <button type="submit" class="btn btn-primary">Upvote</button>
+                        </form>
+                        <span id="upvotes-{{ post['PostID'] }}">{{ post['Upvotes'] }}</span>
+                    </span>
+                    <span>
+                        <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
+                            <button type="submit" class="btn btn-primary">Downvote</button>
+                        </form>
+                        <span id="upvotes-{{ post['PostID'] }}">{{ post['Downvotes'] }}</span>
+                    </span>
+                    <br>
+                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                </div>
+            </div>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <p>No posts available.</p>
+    {% endif %}
 </div>
 {% endblock %}

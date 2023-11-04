@@ -52,7 +52,44 @@ def create_new_user(form_data):
     values = (name, email, role, hashed_password, organization_id)
     cursor.execute(insert_query, values)
     cnx.commit()
-    
+def get_posts():
+    query = f"SELECT Post.*,Name FROM Post join User using(UserID);"
+    cursor.execute(query)
+    result = cursor.fetchall()
+    posts_df=pd.DataFrame(result,columns=["PostID","Title","Description","CreatedAtDate","Status","Topic","UserID","Upvotes","Downvotes","OrganizationID","PostedBy"])
+    return posts_df
+def has_user_upvoted(user_id, post_id):
+    # Check if the user has upvoted the post
+    query = f"SELECT VoteType FROM UserVotes WHERE UserID = {user_id} AND PostID = {post_id} AND VoteType = 'upvote'"
+    cursor.execute(query)
+    result = cursor.fetchall()
+
+    if len(result) > 0:
+        votetype=result[0][0]
+        if votetype=='downvote':
+            # User has upvoted, handle downvoting logic
+            # First, remove the previous upvote from the votes table
+            delete_query = f"DELETE FROM UserVotes WHERE UserID = {user_id} AND PostID = {post_id};"
+            cursor.execute(delete_query)
+            cnx.commit()
+
+            # Next, update the upvotes and downvotes in the posts table
+            update_query = f"UPDATE Post SET Downvotes = Downvotes - 1 WHERE PostID = {post_id}"
+            cursor.execute(update_query)
+            cnx.commit()
+            return False  # User has downvoted after the previous upvote
+        else:
+            return True
+    else:
+        return False  # User has not upvoted the post, they can upvote it
+def insert_upvote(user_id, post_id):
+    query = f"INSERT INTO UserVotes (UserID, PostID, VoteType) VALUES ({user_id}, {post_id}, 'upvote')"
+    cursor.execute(query)
+    cnx.commit()
+    update_query = f"UPDATE Post SET Upvotes = Upvotes + 1 WHERE PostID = {post_id}"
+    cursor.execute(update_query)
+    cnx.commit()
+
 # Login route
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -91,10 +128,47 @@ def signup():
             flash("Signup successful", "success")
             return redirect(url_for("home"))  # Redirect to the home page upon successful signup
     return render_template("signup.html")  # Display the signup form
+from flask import Flask, request, session
 
+@app.route("/upvote/<int:post_id>", methods=["POST"])
+def upvote(post_id):
+    # Check if the user is logged in
+    if "user_id" in session:
+        user_id = session["user_id"]
+        # Check if the user has already upvoted the post
+        if not has_user_upvoted(user_id, post_id):
+            # Insert the upvote into the UserVotes table
+            insert_upvote(user_id, post_id)
+            flash("Upvoted successfully", "success")
+        else:
+            flash("You have already upvoted this post", "danger")
+    else:
+        flash("Please log in to upvote", "danger")
+
+    # Redirect back to the post or home page
+    return redirect(url_for("home")) 
+
+@app.route("/downvote/<int:post_id>", methods=["POST"])
+def upvote(post_id):
+    # Check if the user is logged in
+    if "user_id" in session:
+        user_id = session["user_id"]
+        # Check if the user has already upvoted the post
+        if not has_user_upvoted(user_id, post_id):
+            # Insert the upvote into the UserVotes table
+            insert_upvote(user_id, post_id)
+            flash("Upvoted successfully", "success")
+        else:
+            flash("You have already upvoted this post", "danger")
+    else:
+        flash("Please log in to upvote", "danger")
+
+    # Redirect back to the post or home page
+    return redirect(url_for("home"))
 @app.route("/home", methods=["GET", "POST"])
 def home():
-    return render_template("home.html")
+    posts_df=get_posts()
+    return render_template("home.html",posts_df=posts_df)
 
 if __name__ == '__main__':
     app.run(debug=True)
