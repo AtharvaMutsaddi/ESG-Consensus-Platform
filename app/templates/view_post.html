@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}View Post{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="display-4">View Post</h1>
+    <div class="post card mb-5">
+        <div class="card-body">
+            <h2 class="card-title">{{ post['Title'] }}</h2>
+            <p class="card-text">{{ post['Description'] }}</p>
+            <p class="card-text">Topic: {{ post['Topic'] }}</p>
+            <p class="card-text">Posted by: {{ post['Name'] }}</p>
+            <div class="d-flex justify-content-between">
+                <div class="upvotes">Upvotes: {{ post['Upvotes'] }}</div>
+                <div class="downvotes">Downvotes: {{ post['Downvotes'] }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="vote-section">
+        <span>
+            <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
+                <button type="submit" class="btn btn-success">Upvote</button>
+            </form>
+            <span id="upvotes-{{ post['PostID'] }}">{{ post['Upvotes'] }}</span>
+        </span>
+        <span>
+            <form action="{{ url_for('downvote', post_id=post['PostID']) }}" method="post">
+                <button type="submit" class="btn btn-danger">Downvote</button>
+            </form>
+            <span id="downvotes-{{ post['PostID'] }}">{{ post['Downvotes'] }}</span>
+        </span>
+    </div>
+    <br>
+    <h2>Comments</h2>
+    <div class="comment-list">
+        {% for comment in comments %}
+            <div class="comment card mb-3">
+                <div class="card-body">
+                    <p class="card-text">{{ comment['Content'] }}</p>
+                    <p class="card-text">Posted by: {{ comment['Name'] }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <br>
+    <h2>Add Comment</h2>
+    <form method="POST" action="/submit_comment/{{ post['PostID'] }}" class="comment-form">
+        <div class="form-group">
+            <label for="content">Comment:</label>
+            <textarea name="content" rows="4" class="form-control" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Comment</button>
+    </form>
+</div>
+{% endblock %}

@@ -4,8 +4,12 @@
 
 {% block content %}
 <div class="container">
-    <h2>Home</h2>
-
+    <form method="POST" action="/logout" class="mt-3">
+        <button type="submit" class="btn btn-danger">Logout</button>
+    </form>
+    <form method="POST" action="/login" class="mt-3">
+        <button type="submit" class="btn btn-success">Login</button>
+    </form>
     {% if posts_df is not none %}
     <div class="posts">
         <ul>
@@ -22,18 +26,18 @@
                     <br>
                     <span>
                         <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
-                            <button type="submit" class="btn btn-primary">Upvote</button>
+                            <button type="submit" class="btn btn-success">Upvote</button>
                         </form>
                         <span id="upvotes-{{ post['PostID'] }}">{{ post['Upvotes'] }}</span>
                     </span>
                     <span>
                         <form action="{{ url_for('downvote', post_id=post['PostID']) }}" method="post">
-                            <button type="submit" class="btn btn-primary">Downvote</button>
+                            <button type="submit" class="btn btn-danger">Downvote</button>
                         </form>
                         <span id="downvotes-{{ post['PostID'] }}">{{ post['Downvotes'] }}</span>
                     </span>
                     <br>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                    <a href="/view_post/{{ post['PostID'] }}" class="btn btn-primary mt-3">View Post</a>
                 </div>
             </div>
             {% endfor %}

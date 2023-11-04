@@ -56,6 +56,24 @@ def create_new_user(form_data):
     cursor.execute(insert_query, values)
     cnx.commit()
 
+def fetch_comments_for_post(post_id):
+    query = "SELECT Comment.CommentID, Comment.Content, Comment.CreatedAtDate, User.Name " \
+            "FROM Comment " \
+            "INNER JOIN User ON Comment.UserID = User.UserID " \
+            "WHERE Comment.PostID = %s"
+    cursor.execute(query, (post_id,))
+    comments = []
+    
+    for comment_data in cursor.fetchall():
+        comment = {
+            'CommentID': comment_data[0],
+            'Content': comment_data[1],
+            'CreatedAtDate': comment_data[2],
+            'Name': comment_data[3]
+        }
+        comments.append(comment)
+
+    return comments
 
 def create_new_post(form_data,user_id):
     title=form_data.get("title")
@@ -143,11 +161,39 @@ def insert_downvote(user_id, post_id):
     cursor.execute(update_query)
     cnx.commit()
 
+def fetch_post_from_database(post_id):
+    query = "SELECT Post.PostID, Post.Title, Post.Description, Post.CreatedAtDate, Post.Topic, User.Name, Post.Upvotes, Post.Downvotes " \
+            "FROM Post " \
+            "INNER JOIN User ON Post.UserID = User.UserID " \
+            "WHERE Post.PostID = %s"
+    cursor.execute(query, (post_id,))
+    post_data = cursor.fetchone()
 
+    if post_data:
+        post = {
+            'PostID': post_data[0],
+            'Title': post_data[1],
+            'Description': post_data[2],
+            'CreatedAtDate': post_data[3],
+            'Topic': post_data[4],
+            'Name': post_data[5],
+            'Upvotes': post_data[6],
+            'Downvotes': post_data[7]
+        }
 
+        return post
 
+    return None
 
+def insert_comment_into_database(comment_data, post_id):
+    content = comment_data.get("content")
+    user_id = session.get("user_id") 
+    post_id = post_id
 
+    insert_query = "INSERT INTO Comment (Content, UserID, PostId) VALUES (%s, %s, %s)"
+    values = (content, user_id, post_id)
+    cursor.execute(insert_query, values)
+    cnx.commit()
 
 # Login route
 @app.route("/login", methods=["GET", "POST"])
@@ -228,6 +274,19 @@ def home():
     posts_df=get_posts()
     return render_template("home.html",posts_df=posts_df)
 
+@app.route("/view_post/<int:post_id>", methods=["GET"])
+def view_post(post_id):
+    # Fetch the specific post from the database
+    post = fetch_post_from_database(post_id)
+    if post is None:
+        flash("Post not found", "danger")
+        return redirect(url_for("home"))
+
+    # Fetch comments for the post
+    comments = fetch_comments_for_post(post_id)
+
+    # Render a template to view the post with comments
+    return render_template("view_post.html", post=post, comments=comments)
 
 @app.route("/create_post", methods=["GET", "POST"])
 def create_post():
@@ -239,7 +298,23 @@ def create_post():
 
     return render_template("create_post.html")
 
+@app.route("/logout", methods=["POST"])
+def logout():
+    if  request.method == "POST":
+        session.clear()
+        return redirect(url_for("signup"))
 
+@app.route("/submit_comment/<int:post_id>", methods=["POST"])
+def submit_comment(post_id):
+    if request.method == "POST":
+        # Handle the form submission, insert the comment into the database
+        # Implement the logic to add the comment to the database
+        comment_data = request.form.to_dict()
+        insert_comment_into_database(comment_data, post_id)  # Implement this function
+        flash("Comment successfully added", "success")
+        return redirect(url_for("view_post", post_id=post_id))
 
+    # Render a template for commenting on a post (you'll need to create this template)
+    return render_template("comment.html")
 if __name__ == '__main__':
     app.run(debug=True)
