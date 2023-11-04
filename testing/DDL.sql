@@ -29,8 +29,8 @@ CREATE TABLE Post (
     Status VARCHAR(20) DEFAULT 'in progress',
     Topic ENUM('environment', 'social','governance') NOT NULL,
     UserID INT,
-    Upvotes INT,
-    Downvotes INT,
+    Upvotes INT DEFAULT 0,
+    Downvotes INT DEFAULT 0,
     OrganizationID INT DEFAULT NULL,
     FOREIGN KEY (UserID) REFERENCES User(UserID),
     FOREIGN KEY (OrganizationID) REFERENCES Organization(OrganizationID)
