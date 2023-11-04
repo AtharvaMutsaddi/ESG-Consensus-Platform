@@ -27,10 +27,10 @@
                         <span id="upvotes-{{ post['PostID'] }}">{{ post['Upvotes'] }}</span>
                     </span>
                     <span>
-                        <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
+                        <form action="{{ url_for('downvote', post_id=post['PostID']) }}" method="post">
                             <button type="submit" class="btn btn-primary">Downvote</button>
                         </form>
-                        <span id="upvotes-{{ post['PostID'] }}">{{ post['Downvotes'] }}</span>
+                        <span id="downvotes-{{ post['PostID'] }}">{{ post['Downvotes'] }}</span>
                     </span>
                     <br>
                     <a href="#" class="btn btn-primary">Go somewhere</a>
