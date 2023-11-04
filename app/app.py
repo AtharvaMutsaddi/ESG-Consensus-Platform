@@ -195,6 +195,26 @@ def insert_comment_into_database(comment_data, post_id):
     cursor.execute(insert_query, values)
     cnx.commit()
 
+def get_sentiment_analytics(post_id):
+    q=f"SELECT * from Comment WHERE PostID={post_id};"
+    cursor.execute(q)
+    result=cursor.fetchall()
+    comment_df=pd.DataFrame(result,columns=["CommentID","Content","CreatedAtDate","UserID","PostID"])
+    comments=comment_df["Content"]
+    sentiments=[]
+    for comment in comments:
+        sentiment_scores = sid.polarity_scores(comment)
+        compound_score = sentiment_scores['compound']
+        sentiments.append(compound_score)
+    comment_df['CompoundScore'] = sentiments
+
+    # Categorize comments as positive, negative, or neutral
+    comment_df['SentimentLabel'] = 'neutral'
+    comment_df.loc[comment_df['CompoundScore'] > 0.05, 'SentimentLabel'] = 'positive'
+    comment_df.loc[comment_df['CompoundScore'] < -0.05, 'SentimentLabel'] = 'negative'
+    return comment_df
+
+
 # Login route
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -250,11 +270,13 @@ def upvote(post_id):
         flash("Please log in to upvote", "danger")
 
     # Redirect back to the post or home page
-    return redirect(url_for("home")) 
+    previous_route = session.get('previous_route', 'http://127.0.0.1:5000/home') 
+    return redirect(previous_route)
 
 @app.route("/downvote/<int:post_id>", methods=["POST"])
 def downvote(post_id):
     # Check if the user is logged in
+
     if "user_id" in session:
         user_id = session["user_id"]
         # Check if the user has already upvoted the post
@@ -268,15 +290,19 @@ def downvote(post_id):
         flash("Please log in to downvote", "danger")
 
     # Redirect back to the post or home page
-    return redirect(url_for("home"))
+    previous_route = session.get('previous_route', 'http://127.0.0.1:5000/home') 
+    return redirect(previous_route)
 @app.route("/home", methods=["GET", "POST"])
 def home():
     posts_df=get_posts()
-    return render_template("home.html",posts_df=posts_df)
+    session['previous_route'] = request.url
+    checkloggedin=("user_id" in session)
+    return render_template("home.html",posts_df=posts_df,checkloggedin=checkloggedin)
 
 @app.route("/view_post/<int:post_id>", methods=["GET"])
 def view_post(post_id):
     # Fetch the specific post from the database
+    session['previous_route'] = request.url
     post = fetch_post_from_database(post_id)
     if post is None:
         flash("Post not found", "danger")
@@ -284,18 +310,25 @@ def view_post(post_id):
 
     # Fetch comments for the post
     comments = fetch_comments_for_post(post_id)
-
+    df=get_sentiment_analytics(post_id)
+    data = {
+        'labels': list(df['SentimentLabel'].value_counts().index),
+        'data': list(df['SentimentLabel'].value_counts().values),
+        'colors': ['green', 'red', 'gray'],
+    }
+    data['data'] = [int(x) for x in data['data']]
     # Render a template to view the post with comments
-    return render_template("view_post.html", post=post, comments=comments)
+    return render_template("view_post.html", post=post, comments=comments,data=data)
 
 @app.route("/create_post", methods=["GET", "POST"])
 def create_post():
-    if request.method == "POST":
+    if request.method == "POST" and "user_id" in session:
         form_data = request.form.to_dict()
         user_id = session["user_id"]
         create_new_post(form_data,user_id)
         return redirect(url_for("home"))
-
+    elif "user_id" not in session:
+        flash("Please Login to add posts", "danger")
     return render_template("create_post.html")
 
 @app.route("/logout", methods=["POST"])
@@ -306,15 +339,14 @@ def logout():
 
 @app.route("/submit_comment/<int:post_id>", methods=["POST"])
 def submit_comment(post_id):
-    if request.method == "POST":
-        # Handle the form submission, insert the comment into the database
-        # Implement the logic to add the comment to the database
+    if request.method == "POST" and "user_id" in session:
         comment_data = request.form.to_dict()
         insert_comment_into_database(comment_data, post_id)  # Implement this function
         flash("Comment successfully added", "success")
         return redirect(url_for("view_post", post_id=post_id))
-
-    # Render a template for commenting on a post (you'll need to create this template)
-    return render_template("comment.html")
+    elif "user_id" not in session:
+        flash("Please Login to add comments", "danger")
+    previous_route = session.get('previous_route', 'http://127.0.0.1:5000/home') 
+    return redirect(previous_route)
 if __name__ == '__main__':
     app.run(debug=True)

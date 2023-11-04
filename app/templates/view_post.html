@@ -17,7 +17,9 @@
             </div>
         </div>
     </div>
-
+    <div class="chart-container" style="width: 500px; height: 500px;">
+        <canvas id="myPieChart"></canvas>
+    </div>
     <div class="vote-section">
         <span>
             <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
@@ -54,4 +56,19 @@
         <button type="submit" class="btn btn-primary">Submit Comment</button>
     </form>
 </div>
+<script>
+    var data = {{ data | tojson | safe }};  // Convert the data from Python to JavaScript
+
+    var ctx = document.getElementById('myPieChart').getContext('2d');
+    var myPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.data,
+                backgroundColor: data.colors,
+            }],
+        },
+    });
+</script>
 {% endblock %}
