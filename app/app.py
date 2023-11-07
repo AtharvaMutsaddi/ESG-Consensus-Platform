@@ -317,8 +317,30 @@ def view_post(post_id):
         'colors': ['green', 'red', 'gray'],
     }
     data['data'] = [int(x) for x in data['data']]
+
+    grouped = df.groupby(['CreatedAtDate', 'SentimentLabel']).size().unstack().fillna(0)
+
+    # Check if 'positive', 'negative', and 'neutral' are present in the grouped DataFrame
+    if 'positive' not in grouped:
+        grouped['positive'] = [0] * len(grouped)
+    if 'negative' not in grouped:
+        grouped['negative'] = [0] * len(grouped)
+    if 'neutral' not in grouped:
+        grouped['neutral'] = [0] * len(grouped)
+
+    data2 = {
+        "labels": list(grouped.index),
+        "positive": list(grouped['positive']),
+        "negative": list(grouped['negative']),
+        "neutral": list(grouped['neutral']),
+    }
+
+    data2['positive'] = [int(x) for x in data2['positive']]
+    data2['negative'] = [int(x) for x in data2['negative']]
+    data2['neutral'] = [int(x) for x in data2['neutral']]
+
     # Render a template to view the post with comments
-    return render_template("view_post.html", post=post, comments=comments,data=data)
+    return render_template("view_post.html", post=post, comments=comments,data=data,data2=data2)
 
 @app.route("/create_post", methods=["GET", "POST"])
 def create_post():

@@ -17,9 +17,14 @@
             </div>
         </div>
     </div>
-    <div class="chart-container" style="width: 500px; height: 500px;">
-        <canvas id="myPieChart"></canvas>
-    </div>
+    <div style="display: flex;">
+        <div class="chart-container" style="width: 300px; height: 400px;">
+            <canvas id="myPieChart"></canvas>
+        </div>
+        <div class="chart-container" style="width: 500px; height: 400px;">
+            <canvas id="combinedChart"></canvas>
+        </div>
+    </div>    
     <div class="vote-section">
         <span>
             <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
@@ -38,12 +43,12 @@
     <h2>Comments</h2>
     <div class="comment-list">
         {% for comment in comments %}
-            <div class="comment card mb-3">
-                <div class="card-body">
-                    <p class="card-text">{{ comment['Content'] }}</p>
-                    <p class="card-text">Posted by: {{ comment['Name'] }}</p>
-                </div>
+        <div class="comment card mb-3">
+            <div class="card-body">
+                <p class="card-text">{{ comment['Content'] }}</p>
+                <p class="card-text">Posted by: {{ comment['Name'] }}</p>
             </div>
+        </div>
         {% endfor %}
     </div>
     <br>
@@ -69,6 +74,43 @@
                 backgroundColor: data.colors,
             }],
         },
+    });
+
+    var data2 = {{ data2 | tojson | safe }};  // Convert the data from Python to JavaScript
+
+    // Data for the combined chart
+    var dataCombined = {
+        labels: data2.labels,
+        datasets: [
+            {
+                label: 'Positive Sentiment',
+                data: data2.positive,
+                fill: false,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.4
+            },
+            {
+                label: 'Negative Sentiment',
+                data: data2.negative,
+                fill: false,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                tension: 0.4
+            },
+            {
+                label: 'Neutral Sentiment',
+                data: data2.neutral,
+                fill: false,
+                borderColor: 'rgba(255, 206, 86, 1)',
+                tension: 0.4
+            }
+        ]
+    };
+
+    // Initialize and render the combined line chart
+    var ctxCombined = document.getElementById('combinedChart').getContext('2d');
+    var combinedChart = new Chart(ctxCombined, {
+        type: 'line',
+        data: dataCombined,
     });
 </script>
 {% endblock %}
