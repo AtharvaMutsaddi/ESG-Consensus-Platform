@@ -3,9 +3,11 @@
 {% block title %}View Post{% endblock %}
 
 {% block content %}
-<div class="container">
+
+<div class="container mt-4">
     <h1 class="display-4">View Post</h1>
-    <div class="post card mb-5">
+    <br>
+    <div class="card mb-5">
         <div class="card-body">
             <h2 class="card-title">{{ post['Title'] }}</h2>
             <p class="card-text">{{ post['Description'] }}</p>
@@ -17,28 +19,25 @@
             </div>
         </div>
     </div>
-    <div class="chart-container" style="width: 500px; height: 500px;">
-        <canvas id="myPieChart"></canvas>
-    </div>
-    <div class="vote-section">
-        <span>
-            <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
-                <button type="submit" class="btn btn-success">Upvote</button>
-            </form>
-            <span id="upvotes-{{ post['PostID'] }}">{{ post['Upvotes'] }}</span>
-        </span>
-        <span>
-            <form action="{{ url_for('downvote', post_id=post['PostID']) }}" method="post">
-                <button type="submit" class="btn btn-danger">Downvote</button>
-            </form>
-            <span id="downvotes-{{ post['PostID'] }}">{{ post['Downvotes'] }}</span>
-        </span>
+    <div class="chart-container" style="width: 300px; height: 300px;">
+        <canvas id="myPieChart" class="mb-4"></canvas>
     </div>
     <br>
-    <h2>Comments</h2>
+    <div class="vote-section">
+        <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post" class="d-inline">
+            <button type="submit" class="btn btn-success">Upvote</button>
+        </form>
+        <span class="ml-2" id="upvotes-{{ post['PostID'] }}">{{ post['Upvotes'] }}</span>
+        <form action="{{ url_for('downvote', post_id=post['PostID']) }}" method="post" class="d-inline">
+            <button type="submit" class="btn btn-danger ml-3">Downvote</button>
+        </form>
+        <span class="ml-2" id="downvotes-{{ post['PostID'] }}">{{ post['Downvotes'] }}</span>
+    </div>
+    <br>
+    <h2 class="mt-4">Comments</h2>
     <div class="comment-list">
         {% for comment in comments %}
-            <div class="comment card mb-3">
+            <div class="card mb-3">
                 <div class="card-body">
                     <p class="card-text">{{ comment['Content'] }}</p>
                     <p class="card-text">Posted by: {{ comment['Name'] }}</p>
@@ -47,10 +46,10 @@
         {% endfor %}
     </div>
     <br>
-    <h2>Add Comment</h2>
+    <h2 class="mt-4">Add Comment</h2>
     <form method="POST" action="/submit_comment/{{ post['PostID'] }}" class="comment-form">
         <div class="form-group">
-            <label for="content">Comment:</label>
+            <label for "content">Comment:</label>
             <textarea name="content" rows="4" class="form-control" required></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Submit Comment</button>

@@ -3,49 +3,62 @@
 {% block title %}Home - Your App Name{% endblock %}
 
 {% block content %}
-<div class="container">
-    {% if checkloggedin==True %}
-    <form method="POST" action="/logout" class="mt-3">
-        <button type="submit" class="btn btn-danger">Logout</button>
-    </form>
-    {% else %}
-    <a href="/login" class="btn btn-success">Login</a>
-    {% endif %}
-    {% if posts_df is not none %}
-    <div class="posts">
-        <ul>
-            {% for index, post in posts_df.iterrows() %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            {% if checkloggedin == True %}
+            <form method="POST" action="/logout">
+                <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+            {% else %}
+            <a href="/login" class="btn btn-success">Login</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col">
+            {% if posts_df is not none %}
             <div class="card">
                 <div class="card-header">
-                    {{ post["Topic"] }}:{{post["Type"]}}
+                    <h4>Posts</h4>
                 </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ post["Title"] }}</h5>
-                    <span>Posted By: {{ post["PostedBy"] }}</span>
-                    <p class="card-text">{{ post["Description"] }}</p>
-                    <span>Status: {{ post["Status"] }}</span>
-                    <br>
-                    <span>
-                        <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
-                            <button type="submit" class="btn btn-success">Upvote</button>
-                        </form>
-                        <span id="upvotes-{{ post['PostID'] }}">{{ post['Upvotes'] }}</span>
-                    </span>
-                    <span>
-                        <form action="{{ url_for('downvote', post_id=post['PostID']) }}" method="post">
-                            <button type="submit" class="btn btn-danger">Downvote</button>
-                        </form>
-                        <span id="downvotes-{{ post['PostID'] }}">{{ post['Downvotes'] }}</span>
-                    </span>
-                    <br>
-                    <a href="/view_post/{{ post['PostID'] }}" class="btn btn-primary mt-3">View Post</a>
-                </div>
+                <ul class="list-group list-group-flush">
+                    {% for index, post in posts_df.iterrows() %}
+                    <li class="list-group-item">
+                        <div class="card">
+                            <div class="card-header">
+                                {{ post["Topic"] }}: {{ post["Type"] }}
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ post["Title"] }}</h5>
+                                <p class="card-text">{{ post["Description"] }}</p>
+                                <p class="card-text">Posted By: {{ post["PostedBy"] }}</p>
+                                <p class="card-text">Status: {{ post["Status"] }}</p>
+                                <div class="btn-group" role="group">
+                                    <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
+                                        <button type="submit" class="btn btn-success">Upvote</button>
+                                    </form>
+                                    <span id="upvotes-{{ post['PostID'] }}" class="badge badge-success">{{ post['Upvotes'] }}</span>
+                                </div>
+                                <div class="btn-group ml-2" role="group">
+                                    <form action="{{ url_for('downvote', post_id=post['PostID']) }}" method="post">
+                                        <button type="submit" class="btn btn-danger">Downvote</button>
+                                    </form>
+                                    <span id="downvotes-{{ post['PostID'] }}" class="badge badge-danger">{{ post['Downvotes'] }}</span>
+                                </div>
+                                <div class="mt-3">
+                                    <a href="/view_post/{{ post['PostID'] }}" class="btn btn-primary">View Post</a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
-            {% endfor %}
-        </ul>
+            {% else %}
+            <p>No posts available.</p>
+            {% endif %}
+        </div>
     </div>
-    {% else %}
-    <p>No posts available.</p>
-    {% endif %}
 </div>
 {% endblock %}
