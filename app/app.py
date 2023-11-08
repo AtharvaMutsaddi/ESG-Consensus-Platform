@@ -458,7 +458,7 @@ def create_post():
 def logout():
     if  request.method == "POST":
         session.clear()
-        return redirect(url_for("signup"))
+        return redirect(url_for("login"))
 
 @app.route("/submit_comment/<int:post_id>", methods=["POST"])
 def submit_comment(post_id):
@@ -538,10 +538,14 @@ def user_profile(user_di):
         user_id = session["user_id"]
         # Fetch posts created by the logged-in user
         query = f"SELECT * FROM User WHERE UserID = {user_di}"
-        
+        query2 = f"SELECT * FROM Post WHERE UserID = {user_di}"
+
         cursor.execute(query)
-        user_posts = cursor.fetchall()
-        posts_df = pd.DataFrame(user_posts, columns=["UserID","Name","Email","Role","Password","OrganizationID","profile_pic"])
+        user_id = cursor.fetchall()
+        posts_df = pd.DataFrame(user_id, columns=["UserID","Name","Email","Role","Password","OrganizationID","profile_pic"])
+        cursor.execute(query2)
+        user_post = cursor.fetchall()
+        user_post_df = pd.DataFrame(user_post, columns=["PostID", "Title", "Description", "CreatedAtDate", "Status", "Topic","UserID", "Upvotes", "Downvotes", "OrganizationID", "Type"])
         temp = posts_df["OrganizationID"][0]
         # print(temp)
         if(temp is not None):
@@ -555,7 +559,7 @@ def user_profile(user_di):
 
 
         checkloggedin = True
-        return render_template("user_profile.html", posts_df=posts_df, user_org=user_org,temp=temp,checkloggedin=checkloggedin)
+        return render_template("user_profile.html", posts_df=posts_df, user_org=user_org,temp=temp, user_post_df=user_post_df, checkloggedin=checkloggedin)
     else:
         flash("Please log in to view your posts", "danger")
         return redirect(url_for("login"))
