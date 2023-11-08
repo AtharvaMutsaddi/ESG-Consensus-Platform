@@ -344,7 +344,7 @@ def signup():
         else:
             create_new_user(form_data)
             flash("Signup successful", "success")
-            return redirect(url_for("home"))  # Redirect to the home page upon successful signup
+            return redirect(url_for("login"))  # Redirect to the home page upon successful signup
     return render_template("signup.html")  # Display the signup form
 
 @app.route("/upvote/<int:post_id>", methods=["POST"])
@@ -531,24 +531,54 @@ def edit_post(post_id):
         flash("Please log in to edit posts", "danger")
         return redirect(url_for("login"))
 
-@app.route("/organization_info", methods=["GET","POST"])
-def organization_info():
+@app.route("/user_profile/<int:user_di>", methods=["GET", "POST"])
+def user_profile(user_di):
+    # Check if the user is logged in
+    if "user_id" in session:
+        user_id = session["user_id"]
+        # Fetch posts created by the logged-in user
+        query = f"SELECT * FROM User WHERE UserID = {user_di}"
+        
+        cursor.execute(query)
+        user_posts = cursor.fetchall()
+        posts_df = pd.DataFrame(user_posts, columns=["UserID","Name","Email","Role","Password","OrganizationID","profile_pic"])
+        temp = posts_df["OrganizationID"][0]
+        # print(temp)
+        if(temp is not None):
+            query2 = f"select Name from organization where OrganizationID = {temp};"
+            cursor.execute(query2)
+            user_org = cursor.fetchall()
+            user_org = user_org[0][0]
+
+        else:
+            user_org = None
+
+
+        checkloggedin = True
+        return render_template("user_profile.html", posts_df=posts_df, user_org=user_org,temp=temp,checkloggedin=checkloggedin)
+    else:
+        flash("Please log in to view your posts", "danger")
+        return redirect(url_for("login"))
+
+@app.route("/organization_info/<int:org_id>", methods=["GET", "POST"])
+def organization_info(org_id):
     # Check if the user is logged in
     if "user_id" in session:
         user_id = session["user_id"]
         checkloggedin = True
+
         query = f"SELECT * FROM Organization;"
         cursor.execute(query)
         other_organizations = cursor.fetchall()
         # Convert the list of dictionaries to a Pandas DataFrame
-        other_organizations = pd.DataFrame(other_organizations, columns=["OrganizationID","Name","ContactInformation","Description","Location"])
-        
-        # other_organizations = fetch_other_organizations(user_id)
-
-        return render_template("organization_info.html", other_organizations=other_organizations, checkloggedin=checkloggedin)
+        other_organizations = pd.DataFrame(other_organizations, columns=["OrganizationID","Name","ContactInformation","Description","Location","logo"])
+        org_id = str(org_id)
+        # Pass the organization ID to the template
+        return render_template("organization_info.html", other_organizations=other_organizations, org_id=org_id, checkloggedin=checkloggedin)
     else:
         flash("Please log in to view organization information", "danger")
         return redirect(url_for("login"))
+
 
 
 

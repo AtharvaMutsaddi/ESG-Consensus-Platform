@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile - Your App Name{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-4">User Profile</h1>
+    </div>
+
+    <div class="user-profile">
+        <div class="row">
+            <div class="col-md-4">
+                <img src="{{ posts_df['profile_pic'][0] }}" alt="Profile Picture" class="img-fluid rounded-circle">
+            </div>
+            <div class="col-md-8">
+                <h2>{{ posts_df['Name'][0] }}</h2>
+                <p>Email: {{ posts_df['Email'][0] }}</p>
+                {% if user_org is not none %}
+                    <p>Organization: <a href="{{ url_for('organization_info', org_id=temp) }}">{{ user_org }}</a></p>
+                {% else %}
+                    <p>No organization information available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- You can add more user-specific content or actions here -->
+
+</div>
+{% endblock %}

@@ -38,7 +38,14 @@
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">{{ post["Title"] }}</h5>
-                    <span>Posted By: {{ post["PostedBy"] }}</span>
+                    <span>Posted By: <a href="{{ url_for('user_profile', user_di=post['UserID']) }}">{{ post["PostedBy"] }}</a></span>
+                    
+                    {% if post["OrganizationID"] is not none %}
+                        <p>Organization: <a href="{{ url_for('organization_info', org_id=post['OrganizationID']) }}">{{ post['OrganizationID'] }}</a></p>
+                    {% else %}
+                        <p>No organization information available.</p>
+                    {% endif %}
+                    
                     <p class="card-text">{{ post["Description"] }}</p>
                     <span>Status: {{ post["Status"] }}</span>
                     <br>
