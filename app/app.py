@@ -116,6 +116,66 @@ def get_posts():
     posts_df=pd.DataFrame(result,columns=["PostID","Title","Description","CreatedAtDate","Status","Topic","UserID","Upvotes","Downvotes","OrganizationID","Type","PostedBy"])
     return posts_df
 
+def get_stats_for_post(post_id):
+    query1 = f"SELECT Upvotes+Downvotes FROM Post WHERE PostID={post_id};"
+    cursor.execute(query1)
+    total_votes= cursor.fetchall()
+    total_votes=total_votes[0][0]
+    query2=f"SELECT COUNT(*) FROM Comment WHERE PostID={post_id}"
+    cursor.execute(query2)
+    total_comments= cursor.fetchall()
+    total_comments=total_comments[0][0]
+    query3=f"SELECT Content FROM Comment WHERE PostID={post_id}"
+    cursor.execute(query3)
+    comments= cursor.fetchall()
+    neg=0
+    pos=0
+    neut=0
+    for comment in comments:
+        comment=comment[0]
+        sentiment_scores = sid.polarity_scores(comment)
+        compound_score = sentiment_scores['compound']
+        if compound_score<-0.05:
+            neg+=1
+        elif compound_score>0.05:
+            pos+=1
+        else:
+            neut+=1
+
+    query4=f"SELECT Downvotes FROM Post WHERE PostID={post_id};"
+    cursor.execute(query4)
+    downvotes=cursor.fetchall()
+    downvotes=downvotes[0][0]
+    return [total_votes,total_comments,neg,pos,neut,downvotes]
+
+
+def rank_posts():
+    query0="SELECT DISTINCT PostID from Post;"
+    cursor.execute(query0)
+    all_posts= cursor.fetchall()
+    post_to_score={}
+    for post_id in all_posts:
+        post_id=post_id[0]
+        stats=get_stats_for_post(post_id)
+        score=stats[0]+stats[1]-stats[2]+stats[3]-0.5*stats[5]
+        post_to_score[post_id]=score
+    res= post_to_score.copy()
+    sorted_res = sorted(res.items(), key=lambda x:x[1], reverse=True)
+    sorted_res = dict(sorted_res)
+    return list(sorted_res.keys())
+
+def get_ranked_posts(ranked_ids):
+    dfs=[]
+    for post_id in ranked_ids:
+        query = f"SELECT Post.*,Name FROM Post join User using(UserID) WHERE PostID={post_id};"
+        cursor.execute(query)
+        result = cursor.fetchall()
+        posts_df=pd.DataFrame(result,columns=["PostID","Title","Description","CreatedAtDate","Status","Topic","UserID","Upvotes","Downvotes","OrganizationID","Type","PostedBy"])
+        dfs.append(posts_df.head(10))
+
+    result_df=pd.concat(dfs,axis=0)
+    return result_df
+
 def has_user_upvoted(user_id, post_id):
     # Check if the user has upvoted the post
     query = f"SELECT VoteType FROM UserVotes WHERE UserID = {user_id} AND PostID = {post_id}"
@@ -312,7 +372,9 @@ def downvote(post_id):
     return redirect(previous_route)
 @app.route("/home", methods=["GET", "POST"])
 def home():
-    posts_df=get_posts()
+    # posts_df=get_posts()
+    ranked_ids=rank_posts()
+    posts_df=get_ranked_posts(ranked_ids)
     session['previous_route'] = request.url
     checkloggedin=("user_id" in session)
     return render_template("home.html",posts_df=posts_df,checkloggedin=checkloggedin)
