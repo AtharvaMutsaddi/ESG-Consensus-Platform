@@ -18,9 +18,13 @@
     </div>
 
     <div class="user-profile">
-        <div class="row">
-            <div class="col-md-4">
-                <img src="{{ posts_df['profile_pic'][0] }}" alt="Profile Picture" class="img-fluid rounded-circle">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-4 text-center">
+                {% if (posts_df['profile_pic'].values)[0] is not none %}
+                <img src="../{{ (posts_df['profile_pic'].values)[0].decode('utf-8').replace('\\','/') }}" class="img-fluid rounded-circle profile-image" alt="Profile Picture">
+                {% else %}
+                <img src="../static/dummy-profile.png" class="img-fluid rounded-circle profile-image" alt="Default Profile Picture">
+                {% endif %}
             </div>
             <div class="col-md-8">
                 <h2>{{ posts_df['Name'][0] }}</h2>
@@ -32,42 +36,37 @@
                 {% endif %}
             </div>
         </div>
+        <hr class="my-4"> <!-- Horizontal rule for separation -->
     </div>
 
     <div class="user-previous-posts mt-4">
-        <h3>Previous Posts</h3>
+        <h3 class="mb-3">Previous Posts</h3>
         {% if user_post_df is not none %}
-            <ul class="posts">
-                {% for index, post in user_post_df.iterrows() %}
-                <div class="card">
-                    <div class="card-header">
-                        {{ post["Topic"] }}:{{ post["Type"] }}
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title">{{ post["Title"] }}</h5>
-                        {% if post["OrganizationID"] is not none %}
-                            <p>Organization: <a href="{{ url_for('organization_info', org_id=post['OrganizationID']) }}">{{ post['OrganizationID'] }}</a></p>
-                        {% else %}
-                            <p>No organization information available.</p>
-                        {% endif %}
-
-                        <p class="card-text">{{ post["Description"] }}</p>
-                        <span>Status: {{ post["Status"] }}</span>
-                        <br>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex">
-                                        
-                                <span id="upvotes-{{ post['PostID'] }}" class="vote-span">Upvote: {{ post['Upvotes'] }}</span>
-                                <span id="downvotes-{{ post['PostID'] }}" class="vote-span">Downvote: {{ post['Downvotes'] }}</span>
-
-                            
-                            </div>
-                            <a href="/view_post/{{ post['PostID'] }}" class="btn btn-primary btn-sm">View Post</a>
+            {% for index, post in user_post_df.iterrows() %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ post["Topic"] }}:{{ post["Type"] }}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ post["Title"] }}</h5>
+                    {% if post["OrganizationID"] is not none %}
+                        <p>Organization: <a href="{{ url_for('organization_info', org_id=post['OrganizationID']) }}">{{ post['OrganizationID'] }}</a></p>
+                    {% else %}
+                        <p>No organization information available.</p>
+                    {% endif %}
+                    <p class="card-text">{{ post["Description"] }}</p>
+                    <span>Status: {{ post["Status"] }}</span>
+                    <br>
+                    <div class="d-flex align-items-center justify-content-between mt-3">
+                        <div class="d-flex">
+                            <span id="upvotes-{{ post['PostID'] }}" class="vote-span mr-3">Upvote: {{ post['Upvotes'] }}</span>
+                            <span id="downvotes-{{ post['PostID'] }}" class="vote-span">Downvote: {{ post['Downvotes'] }}</span>
                         </div>
+                        <a href="/view_post/{{ post['PostID'] }}" class="btn btn-primary btn-sm">View Post</a>
                     </div>
                 </div>
-                {% endfor %}
-            </ul>
+            </div>
+            {% endfor %}
         {% else %}
             <p>No previous posts available.</p>
         {% endif %}
