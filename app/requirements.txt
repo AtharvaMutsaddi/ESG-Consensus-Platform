@@ -2,3 +2,4 @@ Flask
 flask-bcrypt
 Flask-Moment
 mysql-connector-python
+thefuzz

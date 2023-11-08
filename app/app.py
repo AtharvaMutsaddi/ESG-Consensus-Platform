@@ -6,6 +6,7 @@ import json
 import pandas as pd
 import nltk
 import os
+from thefuzz import fuzz
 from werkzeug.utils import secure_filename
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 sid = SentimentIntensityAnalyzer()
@@ -175,6 +176,20 @@ def get_ranked_posts(ranked_ids):
 
     result_df=pd.concat(dfs,axis=0)
     return result_df
+
+def get_best_matching_titles(search_query):
+    query="SELECT Title,PostID FROM Post;"
+    cursor.execute(query)
+    result=cursor.fetchall()
+    titles=[]
+    for title in result:
+        titles.append([title[0],title[1]])
+    string_match_dict={}
+    for title in titles:
+        string_match_dict[title[1]]=fuzz.ratio(title[0], search_query)
+    string_match_dict=sorted(string_match_dict.items(), key=lambda x:x[1], reverse=True)
+    string_match_dict = dict(string_match_dict)
+    return list(string_match_dict.keys())
 
 def has_user_upvoted(user_id, post_id):
     # Check if the user has upvoted the post
@@ -370,13 +385,19 @@ def downvote(post_id):
     # Redirect back to the post or home page
     previous_route = session.get('previous_route', 'http://127.0.0.1:5000/home') 
     return redirect(previous_route)
+
+search_query=""
 @app.route("/home", methods=["GET", "POST"])
 def home():
     # posts_df=get_posts()
     ranked_ids=rank_posts()
-    posts_df=get_ranked_posts(ranked_ids)
     session['previous_route'] = request.url
     checkloggedin=("user_id" in session)
+    search_query=""
+    search_query = request.form.get('search_query')
+    if search_query is not None:
+        ranked_ids=get_best_matching_titles(search_query)
+    posts_df=get_ranked_posts(ranked_ids)
     return render_template("home.html",posts_df=posts_df,checkloggedin=checkloggedin)
 
 @app.route("/view_post/<int:post_id>", methods=["GET"])
