@@ -380,7 +380,7 @@ def my_posts():
         query = f"SELECT * FROM Post WHERE UserID = {user_id}"
         cursor.execute(query)
         user_posts = cursor.fetchall()
-        posts_df = pd.DataFrame(user_posts, columns=["PostID", "Title", "Description", "CreatedAtDate", "Status", "Topic", "Type","UserID", "Upvotes", "Downvotes", "OrganizationID"])
+        posts_df = pd.DataFrame(user_posts, columns=["PostID", "Title", "Description", "CreatedAtDate", "Status", "Topic","UserID", "Upvotes", "Downvotes", "OrganizationID", "Type"])
         post_id = 1
         checkloggedin = True
         return render_template("my_post.html", posts_df=posts_df, post_id = post_id, checkloggedin=checkloggedin)

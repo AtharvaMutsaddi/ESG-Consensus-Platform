@@ -32,7 +32,8 @@ CREATE TABLE Post (
     Upvotes INT DEFAULT 0,
     Downvotes INT DEFAULT 0,
     OrganizationID INT DEFAULT NULL,
-    FOREIGN KEY (UserID) REFERENCES User(UserID),
+    Type ENUM('issue', 'project') DEFAULT 'issue',
+    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
     FOREIGN KEY (OrganizationID) REFERENCES Organization(OrganizationID)
 );
 
@@ -43,8 +44,8 @@ CREATE TABLE Comment (
     CreatedAtDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UserID INT,
     PostID INT,
-    FOREIGN KEY (UserID) REFERENCES User(UserID),
-    FOREIGN KEY (PostID) REFERENCES Post(PostID)
+    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (PostID) REFERENCES Post(PostID) ON DELETE CASCADE
 );
 
 -- Create Sentiment Analysis Table
@@ -53,7 +54,7 @@ CREATE TABLE SentimentAnalysis (
     Sentiment VARCHAR(20),
     Confidence FLOAT,
     AnalysisDate TIMESTAMP,
-    FOREIGN KEY (CommentID) REFERENCES Comment(CommentID)
+    FOREIGN KEY (CommentID) REFERENCES Comment(CommentID) ON DELETE CASCADE
 );
 
 -- Create UserVotes Table for tracking user votes on posts
@@ -67,4 +68,7 @@ CREATE TABLE UserVotes (
     FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
     FOREIGN KEY (PostID) REFERENCES Post(PostID) ON DELETE CASCADE
 );
+
+
+
 
