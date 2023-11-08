@@ -370,5 +370,110 @@ def submit_comment(post_id):
         flash("Please Login to add comments", "danger")
     previous_route = session.get('previous_route', 'http://127.0.0.1:5000/home') 
     return redirect(previous_route)
+
+@app.route("/my_post", methods=["GET", "POST"])
+def my_posts():
+    # Check if the user is logged in
+    if "user_id" in session:
+        user_id = session["user_id"]
+        # Fetch posts created by the logged-in user
+        query = f"SELECT * FROM Post WHERE UserID = {user_id}"
+        cursor.execute(query)
+        user_posts = cursor.fetchall()
+        posts_df = pd.DataFrame(user_posts, columns=["PostID", "Title", "Description", "CreatedAtDate", "Status", "Topic", "Type","UserID", "Upvotes", "Downvotes", "OrganizationID"])
+        post_id = 1
+        checkloggedin = True
+        return render_template("my_post.html", posts_df=posts_df, post_id = post_id, checkloggedin=checkloggedin)
+    else:
+        flash("Please log in to view your posts", "danger")
+        return redirect(url_for("login"))
+
+@app.route("/edit_post/<int:post_id>", methods=["GET", "POST"])
+def edit_post(post_id):
+    if "user_id" in session:
+        if request.method == "POST":
+            # Handle the form submission to update the post
+            new_title = request.form.get("editTitle")
+            new_description = request.form.get("editDescription")
+            new_status = request.form.get("editStatus")
+            new_topic = request.form.get("editTopic")
+            new_type = request.form.get("editType")
+
+
+            # Update the post in the database using a SQL query
+            update_query = "UPDATE Post SET Title = %s, Description = %s, Status = %s, Topic = %s, Type = %s WHERE PostID = %s"
+            cursor.execute(update_query, (new_title, new_description, new_status, new_topic, new_type, post_id))
+            cnx.commit()
+
+            flash("Post updated successfully", "success")
+            return redirect(url_for("my_posts"))
+        else:
+            # Fetch the existing post data for pre-filling the form
+            query = f"SELECT * FROM Post WHERE PostID = {post_id}"
+            cursor.execute(query)
+            post_data = cursor.fetchone()
+
+            if post_data:
+                post = {
+                    'PostID': post_data[0],
+                    'Title': post_data[1],
+                    'Description': post_data[2],
+                    'Status': post_data[4],
+                    'Topic' : post_data[5],
+                    'Type' : post_data[6]
+                }
+                return render_template("edit_post.html", post=post)
+            else:
+                flash("Post not found", "danger")
+                return redirect(url_for("my_posts"))
+    else:
+        flash("Please log in to edit posts", "danger")
+        return redirect(url_for("login"))
+
+@app.route("/organization_info", methods=["GET","POST"])
+def organization_info():
+    # Check if the user is logged in
+    if "user_id" in session:
+        user_id = session["user_id"]
+        checkloggedin = True
+        query = f"SELECT * FROM Organization;"
+        cursor.execute(query)
+        other_organizations = cursor.fetchall()
+        # Convert the list of dictionaries to a Pandas DataFrame
+        other_organizations = pd.DataFrame(other_organizations, columns=["OrganizationID","Name","ContactInformation","Description","Location"])
+        
+        # other_organizations = fetch_other_organizations(user_id)
+
+        return render_template("organization_info.html", other_organizations=other_organizations, checkloggedin=checkloggedin)
+    else:
+        flash("Please log in to view organization information", "danger")
+        return redirect(url_for("login"))
+
+
+
+@app.route("/delete_post/<int:post_id>", methods=["POST"])
+def delete_post(post_id):
+    if "user_id" in session:
+        user_id = session["user_id"]
+
+        # Check if the post with the given ID exists and belongs to the logged-in user
+        query = "SELECT UserID FROM Post WHERE PostID = %s"
+        cursor.execute(query, (post_id,))
+        result = cursor.fetchone()
+
+        if result and result[0] == user_id:
+            # If the post exists and belongs to the user, delete it
+            delete_query = "DELETE FROM Post WHERE PostID = %s"
+            cursor.execute(delete_query, (post_id,))
+            cnx.commit()
+            flash("Post deleted successfully", "success")
+        else:
+            flash("You don't have permission to delete this post", "danger")
+    else:
+        flash("Please log in to delete posts", "danger")
+
+    # Redirect back to the "My Posts" page
+    return redirect(url_for("my_posts"))
+
 if __name__ == '__main__':
     app.run(debug=True)
