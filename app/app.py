@@ -5,6 +5,8 @@ import mysql.connector
 import json
 import pandas as pd
 import nltk
+import os
+from werkzeug.utils import secure_filename
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 sid = SentimentIntensityAnalyzer()
 with open("config.json", "r") as f:
@@ -40,8 +42,7 @@ def create_new_user(form_data):
     password = form_data.get("password")
     role = form_data.get("role")  # Assuming "role" is the name of the checkbox
     organization = form_data.get("organization")
-    # Hash the user's password before saving it to the database
-    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+
     # Extract the user's name from the email
     name = email.split("@")[0]
     # Get the organization ID (if it exists)
@@ -50,9 +51,26 @@ def create_new_user(form_data):
         organization_id = organization_id[0][0]
     else:
         organization_id = None  # Use None, not 'NULL'
+
+    # Hash the user's password before saving it to the database
+    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+
+    # Check if a profile picture file was uploaded
+    if "profileImage" in request.files:
+        profile_image = request.files["profileImage"]
+        if profile_image.filename != "":
+            # Save the profile picture to a folder and store the path in the database
+            upload_folder = "static/profile_images"
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder)
+
+            # Create a unique filename for the profile picture
+            filename = os.path.join(upload_folder, secure_filename(profile_image.filename))
+            profile_image.save(filename)
+
     # Use parameterized query to prevent SQL injection
-    insert_query = "INSERT INTO User (Name, Email, Role, Password, OrganizationID) VALUES (%s, %s, %s, %s, %s)"
-    values = (name, email, role, hashed_password, organization_id)
+    insert_query = "INSERT INTO User (Name, Email, Role, Password, OrganizationID, profile_pic) VALUES (%s, %s, %s, %s, %s, %s)"
+    values = (name, email, role, hashed_password, organization_id, filename if "filename" in locals() else None)
     cursor.execute(insert_query, values)
     cnx.commit()
 
