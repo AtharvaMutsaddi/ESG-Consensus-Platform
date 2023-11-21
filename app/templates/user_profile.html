@@ -20,7 +20,11 @@
     <div class="user-profile">
         <div class="row">
             <div class="col-md-4">
-                <img src="{{ posts_df['profile_pic'][0] }}" alt="Profile Picture" class="img-fluid rounded-circle">
+                {% if posts_df['profile_pic'][0] is not none %}
+                    <img src="{{ posts_df['profile_pic'][0] }}" alt="Profile Picture" class="img-fluid rounded-circle">
+                {% else %}
+                    <img src="/static/profile_images/empty_profile.png" alt="Empty Profile" class="img-fluid rounded-circle" width="170" height="150">
+                {% endif %}
             </div>
             <div class="col-md-8">
                 <h2>{{ posts_df['Name'][0] }}</h2>
@@ -35,8 +39,10 @@
     </div>
 
     <div class="user-previous-posts mt-4">
-        <h3>Previous Posts</h3>
-        {% if user_post_df is not none %}
+        <div class="mb-5">
+            <h3>Previous Posts</h3>
+        </div>
+            {% if user_post_df is not none %}
             <ul class="posts">
                 {% for index, post in user_post_df.iterrows() %}
                 <div class="card">

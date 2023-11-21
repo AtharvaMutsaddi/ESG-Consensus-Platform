@@ -4,52 +4,60 @@
 
 {% block content %}
 <div class="container mt-4">
-
     <div class="row mt-3">
         <div class="col">
+            <h1 class="display-4">Organizations</h1>
+            <br>
             {% if other_organizations is not none %}
-            <div class="card">
-                <div class="card-header">
-                    <h4>Organizations</h4>
+            
+                <div class="card">
+                    <ul class="list-group list-group-flush">
+                        {% for index, org in other_organizations.iterrows() %}
+                            <div class="card text-left" id="org-{{ org['OrganizationID'] }}">
+                                <div class="card-header">
+                                    <h5>{{ org["Name"] }}</h4>
+                                </div>
+                                <!-- <img src="{{ org['logo'] }}" alt="Organization Logo" class="card-img-top"> -->
+                                <div class="card-body">
+                                    <h5 class="card-title">Location: {{ org['Location'] }}</h5>
+                                    <p class="card-text mb-3">Description: {{ org['Description'] }}</p>
+                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                                </div>
+                                <div class="card-footer text-muted">
+                                    <p class="card-text mb-3">Contact Information: {{ org['ContactInformation'] }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </ul>
                 </div>
-                <ul class="list-group list-group-flush">
-                    {% for index, org in other_organizations.iterrows() %}
-                    <li class="list-group-item">
-                        <div class="card" id="org-{{ org['OrganizationID'] }}">
-                            <div class="card-header">
-                                {{ org["Name"] }}
-                            </div>
-                            <img src="{{ org['logo'] }}" alt="Organization Logo" width="100" height="100">
-                            <div class="card-body">
-                                <p class="card-text">Description: {{ org['Description'] }}</p>
-                                <p class="card-text">Contact Information: {{ org['ContactInformation'] }}</p>
-                                <p class="card-text">Location: {{ org['Location'] }}</p>
-                            </div>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
             {% else %}
-            <p>No organization related to the user.</p>
+            <p class="mt-3">No organizations related to the user.</p>
             {% endif %}
         </div>
     </div>
 </div>
+<style>
+    .card.text-left {
+        text-align: left;
+    }
+</style>
 
 <script>
     // JavaScript to scroll to the specific organization card
-    window.onload = function () {
-        var orgId = "{{ org_id }}"; // Make sure it's a string, enclosed in double quotes
+    window.onload =("DOMContentLoaded", function () {
+        var orgId = "{{ org_id }}";
         console.log(orgId);
+        if (orgId == "0") {
+            return;
+        }
         if (orgId) {
             var orgElement = document.getElementById("org-" + orgId);
+            console.log(orgElement)
             if (orgElement) {
-                orgElement.scrollIntoView();
+                orgElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
-    };
+    });
 </script>
-
 
 {% endblock %}

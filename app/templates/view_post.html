@@ -12,18 +12,18 @@
             <div class="card-body">
                 <h5 class="card-title">{{ post['Title'] }}</h5>
                 <p class="card-text"> <b>Topic:</b> {{ post['Topic'] }}</p>
-                <p class="card-text">{{ post['Description'] }}</p>
-                <p class="card-text">Posted by: {{ post['Name'] }}</p>
+                <p class="card-text"><b>Description:</b> {{ post['Description'] }}</p>
+                <p class="card-text"><b>Posted by:</b> {{ post['Name'] }}</p>
                 <div class="d-flex">
                     <form action="{{ url_for('upvote', post_id=post['PostID']) }}" method="post">
-                        <button type="submit" class="btn btn-success btn-sm">
+                        <button type="submit" class="btn btn-success btn-sm mr-2">
                             <i class="fas fa-arrow-up"></i> Upvote
                             <span id="upvotes-{{ post['PostID'] }}">{{ post['Upvotes'] }}</span>
                         </button>
                     </form>
 
                     <form action="{{ url_for('downvote', post_id=post['PostID']) }}" method="post">
-                        <button type="submit" class="btn btn-danger btn-sm">
+                        <button type="submit" class="btn btn-danger btn-sm ml-2">
                             <i class="fas fa-arrow-down"></i> Downvote
                             <span id="downvotes-{{ post['PostID'] }}">{{ post['Downvotes'] }}</span>
                         </button>

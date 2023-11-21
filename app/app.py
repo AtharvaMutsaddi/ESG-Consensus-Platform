@@ -479,12 +479,35 @@ def my_posts():
         user_id = session["user_id"]
         # Fetch posts created by the logged-in user
         query = f"SELECT * FROM Post WHERE UserID = {user_id}"
+        query2 = f"SELECT * FROM User WHERE UserID = {user_id}"
+
         cursor.execute(query)
         user_posts = cursor.fetchall()
         posts_df = pd.DataFrame(user_posts, columns=["PostID", "Title", "Description", "CreatedAtDate", "Status", "Topic","UserID", "Upvotes", "Downvotes", "OrganizationID", "Type"])
+        
+        cursor.execute(query2)
+        your_id = cursor.fetchall()
+        your_df = pd.DataFrame(your_id, columns=["UserID","Name","Email","Role","Password","OrganizationID","profile_pic"])
+        org_id = your_df["OrganizationID"][0]
+        if your_df["profile_pic"][0] is not None:
+            pic = your_df["profile_pic"][0].decode('utf-8')
+        else:
+            pic = None
+        # ls = str(pic).split("\\")
+        # sep = "/"
+        # your_df["profile_pic"][0] = str(sep.join(ls))
+
+        query3 = f"SELECT Name FROM organization WHERE OrganizationID = {org_id}"
+        print(your_df["profile_pic"][0])
+        if(org_id is not None):
+            cursor.execute(query3)
+            org = cursor.fetchall()
+            org_name = org[0][0]
+        else:
+            org_name = None
         post_id = 1
         checkloggedin = True
-        return render_template("my_post.html", posts_df=posts_df, post_id = post_id, checkloggedin=checkloggedin)
+        return render_template("my_post.html", posts_df=posts_df, pic=pic, your_df=your_df,post_id = post_id, org_name=org_name,checkloggedin=checkloggedin)
     else:
         flash("Please log in to view your posts", "danger")
         return redirect(url_for("login"))
@@ -569,8 +592,7 @@ def organization_info(org_id):
     # Check if the user is logged in
     if "user_id" in session:
         user_id = session["user_id"]
-        checkloggedin = True
-
+        checkloggedin = True            
         query = f"SELECT * FROM Organization;"
         cursor.execute(query)
         other_organizations = cursor.fetchall()

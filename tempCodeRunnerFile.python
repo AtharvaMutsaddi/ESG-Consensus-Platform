@@ -1,0 +1,6 @@
+a = 'static/profile_images\\messi.jpg'
+b = a.split("\\")
+print(b)
+sep = "/"
+k = sep.join(b)
+print(k)

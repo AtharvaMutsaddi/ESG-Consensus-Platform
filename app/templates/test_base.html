@@ -13,16 +13,9 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <!-- Include Font Awesome from CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+WyETP7U5Emd1bq6pF5d5ET2IaxnJTb4Q1Q" crossorigin="anonymous">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <style>
-        
-        html {
-            scroll-behavior: smooth;
-        }
-
         body {
             background-color: #f5f0e3;
         }
@@ -124,13 +117,13 @@
                     <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item active">
-                    <a class="nav-link" href="/my_post">My Profile <span class="sr-only">(current)</span></a>
+                    <a class="nav-link" href="/my_post">My Posts <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/create_post">Add Post</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('organization_info', org_id=0) }}">Organizations</a>
+                    <a class="nav-link" href="/organization_info">Organizations</a>
                 </li>
             </ul>
 
@@ -155,6 +148,7 @@
         <small>esg-consensus &copy; 2023</small>
     </footer>
 
+
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
         integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
         crossorigin="anonymous"></script>
@@ -168,7 +162,6 @@
     <script>
         AOS.init();
     </script>
-
 </body>
 
 </html>

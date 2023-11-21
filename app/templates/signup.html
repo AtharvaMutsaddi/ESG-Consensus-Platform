@@ -5,6 +5,7 @@
 {% block content %}
 <div class="container">
     <h2>Signup</h2>
+    <br>
     <form method="POST" enctype="multipart/form-data">
         <div class="form-group">
             <label for="email">Email</label>
@@ -41,10 +42,15 @@
                 <!-- Add more organizations as needed -->
             </select>
         </div>
-        <div class="form-group">
-            <label for="profileImage">Profile Image (Optional)</label>
+        <div class="mb-3">
+            <label for="profileImage" class="form-label">Profile Image (Optional)</label>
             <input type="file" class="form-control-file" id="profileImage" name="profileImage">
         </div>
+        <!-- <div class="form-group">
+            <label for="profileImage">Profile Image (Optional)</label>
+            <button type="submit" class="btn btn-primary">Signup</button>
+            <input type="file" class="form-control-file" id="profileImage" name="profileImage">
+        </div> -->
         <a href="/login">Already Have an Account? Login</a>
         <br>
         <button type="submit" class="btn btn-primary">Signup</button>
